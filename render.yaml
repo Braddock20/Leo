@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: igpilot
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn -w 1 -k sync -t 120 -b 0.0.0.0:$PORT wsgi:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: HEADLESS
+        value: "true"
+      - key: DAILY_LIKE_LIMIT
+        value: "80"
+      - key: DAILY_FOLLOW_LIMIT
+        value: "40"
+      - key: DAILY_DM_LIMIT
+        value: "20"
+      - key: DAILY_STORY_VIEW_LIMIT
+        value: "100"
+    disk:
+      name: igpilot-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
