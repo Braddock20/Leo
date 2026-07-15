@@ -1,0 +1,16 @@
+# env / secrets
+.env
+data/.fernet_key
+data/chromium_profile/
+data/cookies.json
+instance/*.db
+instance/*.db-wal
+instance/*.db-shm
+logs/*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+.python-version
+# OS
+.DS_Store
