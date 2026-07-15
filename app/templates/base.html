@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}IG Pilot{% endblock %}</title>
+  <style>
+    :root {
+      --bg: #0e0f13;
+      --card: #181a21;
+      --card2: #20232b;
+      --line: #2a2e38;
+      --txt: #e8eaf0;
+      --mut: #8a93a6;
+      --acc: #6c5ce7;
+      --ok: #2ecc71;
+      --warn: #f1c40f;
+      --err: #e74c3c;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 14px/1.5 -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--txt); }
+    header { display: flex; align-items: center; gap: 24px; padding: 16px 28px; border-bottom: 1px solid var(--line); background: var(--card); }
+    header .brand { font-weight: 700; font-size: 18px; letter-spacing: .3px; }
+    header nav a { color: var(--mut); text-decoration: none; margin-right: 14px; }
+    header nav a.active, header nav a:hover { color: var(--txt); }
+    header .grow { flex: 1; }
+    header .pill { background: var(--card2); color: var(--mut); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; font-size: 12px; }
+    header .pill.ok { color: var(--ok); border-color: rgba(46,204,113,.3); }
+    header .pill.err { color: var(--err); border-color: rgba(231,76,60,.3); }
+    main { max-width: 1100px; margin: 28px auto; padding: 0 20px; }
+    .grid { display: grid; gap: 16px; }
+    .grid.cols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid.cols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+    .card h3 { margin: 0 0 4px 0; font-size: 13px; color: var(--mut); text-transform: uppercase; letter-spacing: .8px; }
+    .card .big { font-size: 26px; font-weight: 600; }
+    .card .sub { color: var(--mut); font-size: 12px; }
+    .progress { height: 6px; background: var(--card2); border-radius: 4px; margin-top: 10px; overflow: hidden; }
+    .progress > i { display: block; height: 100%; background: var(--acc); }
+    label { display: block; font-size: 12px; color: var(--mut); margin: 10px 0 4px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
+      background: var(--card2); color: var(--txt); font: inherit;
+    }
+    textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; min-height: 180px; }
+    button, .btn {
+      display: inline-block; padding: 10px 16px; background: var(--acc); color: #fff;
+      border: 0; border-radius: 8px; cursor: pointer; font: inherit; text-decoration: none;
+    }
+    button.secondary { background: var(--card2); color: var(--txt); border: 1px solid var(--line); }
+    button.danger { background: var(--err); }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); font-size: 13px; }
+    th { color: var(--mut); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; }
+    .status { padding: 2px 8px; border-radius: 999px; font-size: 11px; }
+    .status.pending { background: rgba(241,196,15,.12); color: var(--warn); }
+    .status.running { background: rgba(108,92,231,.15); color: var(--acc); }
+    .status.done { background: rgba(46,204,113,.12); color: var(--ok); }
+    .status.failed, .status.cancelled { background: rgba(231,76,60,.12); color: var(--err); }
+    .flash { padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+    .flash.success { background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.3); }
+    .flash.error { background: rgba(231,76,60,.1); border: 1px solid rgba(231,76,60,.3); }
+    .muted { color: var(--mut); font-size: 12px; }
+    .right { text-align: right; }
+    .actions-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (max-width: 720px) { .grid.cols4 { grid-template-columns: repeat(2, 1fr); } .actions-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">⬡ IG Pilot</div>
+    {% if current_user.is_authenticated %}
+    <nav>
+      <a href="{{ url_for('main.dashboard') }}" class="{{ 'active' if request.endpoint == 'main.dashboard' else '' }}">Dashboard</a>
+      <a href="{{ url_for('main.session_view') }}" class="{{ 'active' if request.endpoint == 'main.session_view' else '' }}">Session</a>
+    </nav>
+    {% endif %}
+    <div class="grow"></div>
+    {% if current_user.is_authenticated %}
+      <span class="pill {{ 'ok' if session_active else 'err' }}">{{ 'Session active' if session_active else 'No session' }}</span>
+      <span class="muted">@{{ current_user.username }}</span>
+      <a class="btn secondary" href="{{ url_for('main.logout') }}">Logout</a>
+    {% endif %}
+  </header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash {{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    {% block body %}{% endblock %}
+  </main>
+</body>
+</html>
