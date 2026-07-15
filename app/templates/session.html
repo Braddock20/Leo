@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Session — IG Pilot{% endblock %}
+{% block body %}
+<h2 style="margin-top: 0;">Instagram session</h2>
+
+<div class="grid cols2">
+  <div class="card">
+    <h3 style="margin-top: 0;">Status</h3>
+    {% if session_active %}
+      <p>Live Chromium context is loaded and a valid Instagram session is detected.</p>
+    {% elif has_session %}
+      <p>Cookies are stored. The runner will pick them up on its next start, or click "Apply & verify".</p>
+      <form method="post" style="margin-top: 10px;">
+        <input type="hidden" name="action" value="save" />
+        <button type="submit">Apply & verify</button>
+        <p class="muted" style="margin-top: 8px;">This restarts the browser context with the stored cookies and checks the login state.</p>
+      </form>
+    {% else %}
+      <p class="muted">No cookies stored yet. Use the uploader to add them.</p>
+    {% endif %}
+
+    {% if has_session %}
+    <form method="post" style="margin-top: 18px;">
+      <input type="hidden" name="action" value="clear" />
+      <button class="danger" type="submit" onclick="return confirm('Clear stored session?')">Clear session</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top: 0;">Upload cookies</h3>
+    <p class="muted">Export cookies from your browser (a logged-in instagram.com tab) as a JSON array. The recommended way:</p>
+    <ol class="muted" style="margin-top: 0;">
+      <li>Install the <strong>EditThisCookie</strong> or <strong>Cookie-Editor</strong> extension.</li>
+      <li>Open instagram.com while logged in.</li>
+      <li>Export as JSON.</li>
+      <li>Paste below and click <em>Save cookies</em>.</li>
+    </ol>
+    <p class="muted" style="margin-top: 6px;">Cookies are encrypted at rest with Fernet (key in <code>data/.fernet_key</code>).</p>
+    <form method="post">
+      <input type="hidden" name="action" value="upload" />
+      <textarea name="cookies" placeholder='[{"name":"sessionid","value":"...","domain":".instagram.com",...}, ...]'></textarea>
+      <div style="margin-top: 10px;">
+        <button type="submit">Save cookies</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
