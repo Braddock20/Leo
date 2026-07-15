@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Login — IG Pilot{% endblock %}
+{% block body %}
+<div style="max-width: 360px; margin: 80px auto;">
+  <div class="card">
+    <h2 style="margin-top: 0;">Sign in</h2>
+    <form method="post">
+      <label>Username</label>
+      <input name="username" required autofocus />
+      <label>Password</label>
+      <input name="password" type="password" required />
+      <div style="margin-top: 16px;">
+        <button type="submit">Sign in</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
