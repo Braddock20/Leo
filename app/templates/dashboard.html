@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — IG Pilot{% endblock %}
+{% block body %}
+<h2 style="margin-top: 0;">Dashboard</h2>
+
+{% if not has_session %}
+<div class="flash error">
+  No Instagram session stored. Go to <a href="{{ url_for('main.session_view') }}" style="color: inherit;">Session</a> and upload cookies first.
+</div>
+{% endif %}
+
+<div class="grid cols4" style="margin-bottom: 22px;">
+  <div class="card">
+    <h3>Likes today</h3>
+    <div class="big">{{ counts.like }} / {{ limits.like }}</div>
+    <div class="progress"><i style="width: {{ (counts.like / limits.like * 100) | round(0, 'floor') }}%;"></i></div>
+  </div>
+  <div class="card">
+    <h3>Follows today</h3>
+    <div class="big">{{ counts.follow }} / {{ limits.follow }}</div>
+    <div class="progress"><i style="width: {{ (counts.follow / limits.follow * 100) | round(0, 'floor') }}%;"></i></div>
+  </div>
+  <div class="card">
+    <h3>DMs today</h3>
+    <div class="big">{{ counts.dm }} / {{ limits.dm }}</div>
+    <div class="progress"><i style="width: {{ (counts.dm / limits.dm * 100) | round(0, 'floor') }}%;"></i></div>
+  </div>
+  <div class="card">
+    <h3>Story views today</h3>
+    <div class="big">{{ counts.story_view }} / {{ limits.story_view }}</div>
+    <div class="progress"><i style="width: {{ (counts.story_view / limits.story_view * 100) | round(0, 'floor') }}%;"></i></div>
+  </div>
+</div>
+
+<div class="actions-grid">
+  <div class="card">
+    <h3 style="margin-top: 0;">Like posts on feed</h3>
+    <form method="post" action="{{ url_for('main.create_job') }}">
+      <input type="hidden" name="kind" value="like" />
+      <label>How many</label>
+      <input type="number" name="count" value="5" min="1" max="20" />
+      <div class="row" style="margin-top: 12px;">
+        <button type="submit" name="when" value="now">Run now</button>
+        <input type="number" name="minutes" value="15" min="1" style="width: 80px;" />
+        <button type="submit" class="secondary" name="when" value="schedule">Schedule in (min)</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top: 0;">Follow a user</h3>
+    <form method="post" action="{{ url_for('main.create_job') }}">
+      <input type="hidden" name="kind" value="follow" />
+      <label>Username (no @)</label>
+      <input name="username" placeholder="nasa" required />
+      <div class="row" style="margin-top: 12px;">
+        <button type="submit" name="when" value="now">Run now</button>
+        <input type="number" name="minutes" value="30" min="1" style="width: 80px;" />
+        <button type="submit" class="secondary" name="when" value="schedule">Schedule in (min)</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top: 0;">Send a DM</h3>
+    <form method="post" action="{{ url_for('main.create_job') }}">
+      <input type="hidden" name="kind" value="dm" />
+      <label>Username (no @)</label>
+      <input name="username" placeholder="nasa" required />
+      <label>Message</label>
+      <textarea name="text" rows="3" required>Hey, loved your latest post 🚀</textarea>
+      <div class="row" style="margin-top: 12px;">
+        <button type="submit" name="when" value="now">Run now</button>
+        <input type="number" name="minutes" value="45" min="1" style="width: 80px;" />
+        <button type="submit" class="secondary" name="when" value="schedule">Schedule in (min)</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top: 0;">View stories</h3>
+    <form method="post" action="{{ url_for('main.create_job') }}">
+      <input type="hidden" name="kind" value="story_view" />
+      <label>How many</label>
+      <input type="number" name="count" value="5" min="1" max="20" />
+      <div class="row" style="margin-top: 12px;">
+        <button type="submit" name="when" value="now">Run now</button>
+        <input type="number" name="minutes" value="60" min="1" style="width: 80px;" />
+        <button type="submit" class="secondary" name="when" value="schedule">Schedule in (min)</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" style="grid-column: 1 / -1;">
+    <h3 style="margin-top: 0;">Warm-up browse (no actions, just human activity)</h3>
+    <p class="muted" style="margin: 0 0 8px;">Use this in the first week of an account. Mimics a real user opening the app and scrolling.</p>
+    <form method="post" action="{{ url_for('main.create_job') }}">
+      <input type="hidden" name="kind" value="warmup_browse" />
+      <button type="submit" name="when" value="now">Run now</button>
+    </form>
+  </div>
+</div>
+
+<h3 style="margin-top: 30px;">Recent jobs</h3>
+<div class="card" style="padding: 0;">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Kind</th>
+        <th>Status</th>
+        <th>Scheduled</th>
+        <th>Result</th>
+        <th class="right">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for j in jobs %}
+      <tr>
+        <td>{{ j.id }}</td>
+        <td>{{ j.kind }}</td>
+        <td><span class="status {{ j.status }}">{{ j.status }}</span></td>
+        <td class="muted">{{ j.scheduled_at[:19].replace('T', ' ') }}</td>
+        <td>
+          {% if j.result %}<span class="muted">{{ j.result }}</span>{% endif %}
+          {% if j.error %}<span style="color: var(--err);">{{ j.error }}</span>{% endif %}
+        </td>
+        <td class="right">
+          {% if j.status == 'pending' %}
+          <form method="post" action="{{ url_for('main.cancel', job_id=j.id) }}" style="display:inline;">
+            <button class="danger" type="submit">Cancel</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="muted" style="text-align:center; padding: 30px;">No jobs yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
